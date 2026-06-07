@@ -11,27 +11,22 @@ import requests
 if not firebase_admin._apps:
     try:
         fb = st.secrets["firebase"]
-        key_dict = {
-            "type": fb["type"],
-            "project_id": fb["project_id"],
-            "private_key_id": fb["private_key_id"],
-            "private_key": fb["private_key"].replace("\\n", "\n"),
-            "client_email": fb["client_email"],
-            "client_id": fb["client_id"],
-            "auth_uri": fb["auth_uri"],
-            "token_uri": fb["token_uri"],
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{fb['client_email'].replace('@', '%40')}",
-        }
+        key_dict = json.loads(fb["key"])
         cred = credentials.Certificate(key_dict)
     except Exception:
-        cred = credentials.Certificate("firebase_key.json")
-    firebase_admin.initialize_app(cred, name="safratech")
+        try:
+            cred = credentials.Certificate("firebase_key.json.json")
+        except Exception:
+            cred = credentials.Certificate("firebase_key.json")
+    try:
+        firebase_admin.initialize_app(cred, name="safratech")
+    except ValueError:
+        pass
 
 try:
     app = firebase_admin.get_app("safratech")
 except ValueError:
-    app = firebase_admin.initialize_app(cred, name="safratech")
+    app = firebase_admin.get_app()
 
 db = firestore.client(app=app)
 
